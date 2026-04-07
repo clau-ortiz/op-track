@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum RoleScope {
+  EXECUTIVE
+  MAINTENANCE
+  PROCUREMENT
+  OPERATIONS
+}
+
+model Asset {
+  id                   String              @id
+  name                 String
+  category             String
+  location             String
+  status               String
+  stock                Int
+  minStock             Int
+  riskScore            Int
+  nextServiceDate      DateTime
+  criticality          String
+  replacementLeadDays  Int
+  technicalNotes       String
+  changes              ChangeLog[]
+  maintenances         MaintenanceLog[]
+  suppliers            SupplierOffer[]
+}
+
+model ChangeLog {
+  id          Int      @id @default(autoincrement())
+  assetId     String
+  changedBy   String
+  field       String
+  previous    String
+  next        String
+  reason      String
+  createdAt   DateTime @default(now())
+  visibility  RoleScope
+  asset       Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model MaintenanceLog {
+  id            Int      @id @default(autoincrement())
+  assetId       String
+  performedBy   String
+  type          String
+  status        String
+  notes         String
+  costUsd       Float
+  performedAt   DateTime
+  visibility    RoleScope
+  asset         Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model SupplierOffer {
+  id               Int      @id @default(autoincrement())
+  assetId          String
+  supplier         String
+  sku              String
+  unitPriceUsd     Float
+  leadTimeDays     Int
+  qualityScore     Int
+  warrantyMonths   Int
+  lastQuotedAt     DateTime
+  asset            Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
